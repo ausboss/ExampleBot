@@ -1,18 +1,26 @@
 {
-	"name": "examplebot",
-	"version": "2.0.3",
-	"description": "A simple, easily extendable bot for your needs!",
-	"main": "Bot.js",
-	"keywords": [],
-	"author": "Linus Potocnik",
-	"license": "MIT",
-	"dependencies": {
-		"discord.js": "^14.11.0",
-		"dotenv": "^16.3.1"
-	},
-	"imports": {
-		"#events/*": "./events/*",
-		"#commands/*": "./events/commands/*.js"
-	},
-	"type": "module"
+  "name": "examplebot",
+  "version": "2.0.3",
+  "description": "A simple, easily extendable bot for your needs!",
+  "main": "./Bot.js",
+  "scripts": {
+    "dev": "nodemon .",
+    "start": "node .",
+    "format": "prettier --write src"
+  },
+  "keywords": [],
+  "author": "Linus Potocnik",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.4.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "imports": {
+    "#events/*": "./src/events/*",
+    "#commands/*": "./src/commands/*.js",
+    "#db/*": "./src/db/*.js"
+  },
+  "type": "module"
 }
