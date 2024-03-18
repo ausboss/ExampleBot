@@ -6,8 +6,8 @@ export default {
   execute(message, client, sharedState, channels) {
     if (!channels.includes(message.channel.id)) return;
 
-    console.log(message);
-    console.log(`${message.member.displayName}: ${message.content}`);
+    // console.log(message);
+    console.log(`${message.member.displayName}: ${message.cleanContent}`);
     insertChatLog(
       message.member.displayName,
       message.content,

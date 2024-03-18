@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { createChatLogTable } from "#db/chatLog";
+import { createChatLogTable, createTables } from "#db/chatLog";
 
 async function execute(client, sharedState, channels) {
   const commandsDir = "./src/commands";
@@ -26,6 +26,7 @@ async function execute(client, sharedState, channels) {
 
   try {
     await client.application.commands.set(commandsArray);
+    createTables();
     createChatLogTable();
     console.log(`Successfully logged in as ${client.user.tag}!`);
   } catch (err) {

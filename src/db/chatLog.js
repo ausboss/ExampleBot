@@ -20,6 +20,7 @@ export async function createTables() {
         guild_id TEXT,
         created_timestamp INTEGER,
         content TEXT,
+        clean_content TEXT,
         author_id TEXT,
         pinned BOOLEAN,
         tts BOOLEAN,
@@ -69,6 +70,7 @@ export async function logDetailedMessage(message) {
     guildId,
     createdTimestamp,
     content,
+    cleanContent,
     pinned,
     tts,
     nonce,
@@ -77,8 +79,8 @@ export async function logDetailedMessage(message) {
   // Insert message information
   await db.run(
     `
-      INSERT INTO messages (id, channel_id, guild_id, created_timestamp, content, author_id, pinned, tts, nonce)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO messages (id, channel_id, guild_id, created_timestamp, content, clean_content, author_id, pinned, tts, nonce)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `,
     [
       messageId,
@@ -86,6 +88,7 @@ export async function logDetailedMessage(message) {
       guildId,
       createdTimestamp,
       content,
+      cleanContent,
       userId,
       pinned,
       tts,
