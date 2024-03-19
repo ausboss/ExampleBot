@@ -1,5 +1,5 @@
 import { promises as fs } from "fs";
-import { createChatLogTable, createTables } from "#db/chatLog";
+import { createTables } from "#memory/chatLog";
 
 async function execute(client, sharedState, channels) {
   const commandsDir = "./src/commands";
@@ -27,8 +27,9 @@ async function execute(client, sharedState, channels) {
   try {
     await client.application.commands.set(commandsArray);
     createTables();
-    createChatLogTable();
-    console.log(`Successfully logged in as ${client.user.tag}!`);
+    console.log(`Successfully logged in as ${client.user.username}!`);
+    // how to get the bot's username
+    // console.log(client.user.username);
   } catch (err) {
     console.error("Failed to set commands:", err);
   }
