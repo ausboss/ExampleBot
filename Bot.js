@@ -34,6 +34,7 @@ class Bot {
       DM: {},
       CHANNEL: {},
     };
+
     this.channels = process.env.CHANNEL_IDS.split(",");
     this.sharedState = {}; // Initialize shared state object
     // Load and attach event handlers

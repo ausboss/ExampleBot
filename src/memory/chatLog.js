@@ -1,5 +1,13 @@
 import { db } from "./index.js";
 
+function contentCleaner(message, botName) {
+  if (message.startsWith(`@${botName}`)) {
+    return message.replace(new RegExp(`@${botName}`, "gi"), "").trim();
+  } else {
+    return message.replace("@", "").trim();
+  }
+}
+
 export async function createTables() {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -23,14 +31,29 @@ export async function createTables() {
       FOREIGN KEY (author_id) REFERENCES users (id)
     );
 
-    CREATE TABLE IF NOT EXISTS attachments (
+    CREATE TABLE IF NOT EXISTS dms (
       id TEXT PRIMARY KEY,
+      channel_id TEXT,
+      created_timestamp INTEGER,
+      content TEXT,
+      clean_content TEXT,
+      author_id TEXT,
+      user_name TEXT,
+      global_name TEXT,
+      pinned BOOLEAN,
+      tts BOOLEAN,
+      nonce TEXT,
+      has_attachments BOOLEAN,
+      FOREIGN KEY (author_id) REFERENCES users (id)
+    );
+    CREATE TABLE IF NOT EXISTS attachments (
+      attachment_id TEXT PRIMARY KEY,
       message_id TEXT,
       url TEXT,
-      name TEXT,
-      size INTEGER,
-      FOREIGN KEY (message_id) REFERENCES messages (id)
+      description TEXT,
+      FOREIGN KEY (message_id) REFERENCES dms (id)
     );
+    
 
     CREATE TABLE IF NOT EXISTS mentions (
       message_id TEXT,
@@ -57,9 +80,16 @@ export async function createTables() {
   `);
 }
 
-export async function logDetailedMessage(message) {
+export async function logDetailedMessage(message, client) {
+  const botName = client.user.username;
   // User information
-  const { id: userId, username, discriminator, avatar } = message.author;
+  const {
+    id: userId,
+    username,
+    globalName,
+    discriminator,
+    avatar,
+  } = message.author;
 
   // Insert user information, avoiding duplicates
   await db.run(
@@ -107,6 +137,42 @@ export async function logDetailedMessage(message) {
     ]
   );
 
+  await db.run(
+    `
+      INSERT INTO dms (id, channel_id, created_timestamp, content, clean_content, author_id, user_name, global_name, pinned, tts, nonce, has_attachments)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `,
+    [
+      messageId,
+      channelId,
+      createdTimestamp,
+      content,
+      contentCleaner(cleanContent, botName),
+      userId,
+      username,
+      globalName,
+      pinned,
+      tts,
+      nonce,
+      message.attachments && message.attachments.size > 0, // This will be TRUE if there are attachments, otherwise FALSE
+    ]
+  );
+
+  // Check for attachments and insert them with a placeholder for description
+  if (message.attachments && message.attachments.size > 0) {
+    message.attachments.forEach(async (attachment) => {
+      const { id: attachmentId, url } = attachment;
+
+      await db.run(
+        `
+        INSERT INTO attachments (attachment_id, message_id, url, description)
+        VALUES (?, ?, ?, ?);
+      `,
+        [attachmentId, messageId, url, null] // Using NULL as a placeholder for the description
+      );
+    });
+  }
+
   // Log user mentions with "mentions_everyone" flag
   message.mentions.users.forEach(async (user) => {
     await db.run(
@@ -143,3 +209,13 @@ export async function logDetailedMessage(message) {
     );
   });
 }
+
+// // Assuming you have an attachmentId and a generatedDescription for it
+// await db.run(
+//   `
+//     UPDATE attachments
+//     SET description = ?
+//     WHERE attachment_id = ?;
+//   `,
+//   [generatedDescription, attachmentId]
+// );

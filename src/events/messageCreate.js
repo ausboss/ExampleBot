@@ -1,33 +1,53 @@
 import { processMessage } from "../memory/responseHandler.js";
 import { logDetailedMessage } from "../memory/chatLog.js";
-import { BufferMemory } from "langchain/memory";
+
+// Helper function to split messages
+const splitMessages = (content, maxLength) => {
+  const parts = [];
+  while (content.length) {
+    let length = content.length > maxLength ? maxLength : content.length;
+    let part = content.substring(0, length);
+    let lastNewline = part.lastIndexOf("\n");
+
+    // Try to split at the last newline character if it's too long
+    if (part.length === maxLength && lastNewline > -1) {
+      part = part.substring(0, lastNewline);
+    }
+
+    parts.push(part);
+    content = content.substring(part.length);
+  }
+  return parts;
+};
 
 export default {
   name: "messageCreate",
   async execute(message, memories, client, sharedState, channels) {
-    console.log(memories);
+    if (message.author.bot) return;
 
-    if (!message.guildId) {
-      if (!Object.hasOwn(memories.DM, message.channelId)) {
-        memories.DM[message.channelId] = new BufferMemory();
-      }
+    console.log("Bot was mentioned");
+    // Assuming processMessage returns a string that could be longer than 2000 characters
+    const messageContent = await processMessage(message, memories, client);
+
+    // Discord's character limit per message
+    const CHAR_LIMIT = 2000;
+
+    if (messageContent.length <= CHAR_LIMIT) {
+      // If message content is within the limit, send it as is
+      const sentMessage = await message.reply(messageContent);
+      await logDetailedMessage(message, client);
+      await logDetailedMessage(sentMessage, client);
     } else {
-      if (
-        !Object.hasOwn(memories.CHANNEL, message.channelId) &&
-        channels.includes(message.channelId)
-      ) {
-        memories.CHANNEL[message.channelId] = new BufferMemory();
+      // If message content exceeds the limit, split and send separately
+      const messagesParts = splitMessages(messageContent, CHAR_LIMIT);
+      for (const part of messagesParts) {
+        const sentMessage = await message.reply(part);
+        await logDetailedMessage(message, client);
+        await logDetailedMessage(sentMessage, client);
+        // Consider adding a short delay here if you're sending many messages to avoid rate limits
       }
     }
-    console.log(memories);
-    console.log(message.channelId);
-    //   if (!channels.includes(message.channel.id)) return;
-    //   if (message.mentions.users.has(client.user.id)) {
-    //     const messageContent = await processMessage(message, client);
-    //     const sentMessage = await message.reply(messageContent);
-    //     await logDetailedMessage(message);
-    //     await logDetailedMessage(sentMessage); // Ensure logDetailedMessage is imported or accessible
-    //     // console.log(`Bot's response: ${sentMessage.content}`);
-    //   }
+
+    console.log(memories.DM[message.channelId].chatHistory.messages);
   },
 };
