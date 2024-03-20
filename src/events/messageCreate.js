@@ -26,28 +26,41 @@ export default {
     if (message.author.bot) return;
 
     console.log("Bot was mentioned");
-    // Assuming processMessage returns a string that could be longer than 2000 characters
-    const messageContent = await processMessage(message, memories, client);
+    let messageContent;
+    try {
+      messageContent = await processMessage(message, memories, client);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      return; // Exit if processing fails
+    }
+    console.log("Message content:", messageContent);
 
-    // Discord's character limit per message
-    const CHAR_LIMIT = 2000;
-
-    if (messageContent.length <= CHAR_LIMIT) {
-      // If message content is within the limit, send it as is
-      const sentMessage = await message.reply(messageContent);
-      await logDetailedMessage(message, client);
-      await logDetailedMessage(sentMessage, client);
+    // Check if messageContent is a string and not empty
+    if (typeof messageContent !== "string" || messageContent.length === 0) {
+      console.log("No valid message content to send.");
+      return; // Exit if no valid content
     } else {
-      // If message content exceeds the limit, split and send separately
-      const messagesParts = splitMessages(messageContent, CHAR_LIMIT);
-      for (const part of messagesParts) {
-        const sentMessage = await message.reply(part);
-        await logDetailedMessage(message, client);
-        await logDetailedMessage(sentMessage, client);
-        // Consider adding a short delay here if you're sending many messages to avoid rate limits
+      await logDetailedMessage(message, client); // Log the user's message once
+
+      const CHAR_LIMIT = 2000;
+      if (messageContent.length <= CHAR_LIMIT) {
+        const sentMessage = await message.reply(messageContent);
+        await logDetailedMessage(sentMessage, client); // Log the bot's reply
+      } else {
+        const messagesParts = splitMessages(messageContent, CHAR_LIMIT);
+        for (const part of messagesParts) {
+          const sentMessage = await message.reply(part);
+          await logDetailedMessage(sentMessage, client); // Log each part of the bot's reply
+          function delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+          }
+
+          // Inside the loop, after sending a message part:
+          await delay(1000); // Waits for 1 second
+        }
       }
     }
 
-    console.log(memories.DM[message.channelId].chatHistory.messages);
+    // console.log(memories.DM[message.channelId].chatHistory.messages);
   },
 };
