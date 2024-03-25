@@ -1,1 +1,1 @@
-export async function promtFormatter(char, user, description) {}
+export async function promptFormatter(char, user, description, history) {}

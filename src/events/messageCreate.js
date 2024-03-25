@@ -1,5 +1,7 @@
 import { processMessage } from "../memory/responseHandler.js";
 import { logDetailedMessage } from "../memory/chatLog.js";
+import { historyFormatter } from "../memory/historyFormatter.js";
+import removeBotName from "../chatlogic/removeBotName.js";
 
 // Helper function to split messages
 const splitMessages = (content, maxLength) => {
@@ -25,7 +27,13 @@ export default {
   async execute(message, memories, client, sharedState, channels) {
     if (message.author.bot) return;
 
-    console.log("Bot was mentioned");
+    const chatMessages = historyFormatter(
+      message.channelId,
+      client.user.username,
+      10
+    );
+
+    console.log("Bot response chain started");
     let messageContent;
     try {
       messageContent = await processMessage(message, memories, client);
@@ -38,18 +46,24 @@ export default {
     // Check if messageContent is a string and not empty
     if (typeof messageContent !== "string" || messageContent.length === 0) {
       console.log("No valid message content to send.");
-      return; // Exit if no valid content
+      return;
     } else {
       await logDetailedMessage(message, client); // Log the user's message once
+      // Get the last 10 messages from the channel
 
+      // set the charlimit to 2000 per Discords limitations
       const CHAR_LIMIT = 2000;
       if (messageContent.length <= CHAR_LIMIT) {
-        const sentMessage = await message.reply(messageContent);
+        const sentMessage = await message.reply(
+          removeBotName(client.user.username, messageContent)
+        );
         await logDetailedMessage(sentMessage, client); // Log the bot's reply
       } else {
         const messagesParts = splitMessages(messageContent, CHAR_LIMIT);
         for (const part of messagesParts) {
-          const sentMessage = await message.reply(part);
+          const sentMessage = await message.reply(
+            removeBotName(client.user.username, part)
+          );
           await logDetailedMessage(sentMessage, client); // Log each part of the bot's reply
           function delay(ms) {
             return new Promise((resolve) => setTimeout(resolve, ms));
@@ -60,7 +74,5 @@ export default {
         }
       }
     }
-
-    // console.log(memories.DM[message.channelId].chatHistory.messages);
   },
 };
