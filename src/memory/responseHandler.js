@@ -5,6 +5,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { BufferWindowMemory } from "langchain/memory";
+import { db } from "./index.js";
 
 const chat = new ChatOpenAI({
   openAIApiKey: "sk-",
