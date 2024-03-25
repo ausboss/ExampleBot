@@ -26,6 +26,7 @@ export default {
   name: "messageCreate",
   async execute(message, memories, client, sharedState, channels) {
     if (message.author.bot) return;
+    if (message.channel.guildId) return;
 
     const chatMessages = historyFormatter(
       message.channelId,
