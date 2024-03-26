@@ -1,6 +1,5 @@
 import { processMessage } from "../memory/responseHandler.js";
 import { logDetailedMessage } from "../memory/chatLog.js";
-import { historyFormatter } from "../memory/historyFormatter.js";
 import removeBotName from "../chatlogic/removeBotName.js";
 
 // Helper function to split messages
@@ -26,12 +25,6 @@ export default {
   name: "messageCreate",
   async execute(message, memories, client, sharedState, channels) {
     if (message.author.bot) return;
-
-    const chatMessages = historyFormatter(
-      message.channelId,
-      client.user.username,
-      10
-    );
 
     console.log("Bot response chain started");
     let messageContent;

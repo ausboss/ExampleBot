@@ -1,12 +1,12 @@
-export default async function llmCall(prompt) {
+export default async function llmCall(prompt, stopWords) {
   const url = "http://api.ausboss.io/v1/completions";
   const postData = {
     prompt: prompt,
-    max_tokens: 500,
-    temperature: 1,
+    max_tokens: 1000,
+    temperature: 1.14,
     top_p: 0.9,
-
-    Preset: "Big O",
+    min_p: 0.06,
+    stop: ["Tensor: ", "Peepy: "],
   };
 
   try {
@@ -23,8 +23,9 @@ export default async function llmCall(prompt) {
     }
 
     const data = await response.json();
-    console.log(data);
-    return data;
+    const dataText = data.choices[0].text;
+    console.log(dataText);
+    return dataText;
   } catch (error) {
     console.error("Request failed:", error);
   }
