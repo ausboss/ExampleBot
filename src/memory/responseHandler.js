@@ -1,6 +1,7 @@
 import { promptFormatter } from "./promptFormatter.js";
 import { historyFormatter } from "../memory/historyFormatter.js";
 import llmCall from "../chatlogic/llmCall.js";
+import imageCaption from "../tools/imageCaption.js";
 
 // Revised processMessage function
 export async function processMessage(message, memories, client) {
@@ -16,18 +17,29 @@ export async function processMessage(message, memories, client) {
   const userName = message.author.globalName;
   const botName = client.user.username;
 
-  // console.log("userName:", userName);
+  let captionResponse = "";
+  if (message.attachments.size > 0) {
+    for (const attachment of message.attachments.values()) {
+      const response = await imageCaption(attachment.url); // Removed .split()
+      if (response) {
+        // Ensure response is not undefined
+        captionResponse += ` [${userName} posts a picture of ${response}]`;
+      }
+    }
+  }
+
   const prompt = await promptFormatter(
     botName,
     userName,
-    message.cleanContent,
+    message.cleanContent + captionResponse,
     chatMessages
   );
 
   try {
-    if (message.guildId) return;
+    if (message.guildId) return; // Assuming you want to exit if this is a guild message
+    console.log("Prompt:", prompt);
 
-    const chainResponse = await llmCall(prompt);
+    const chainResponse = await llmCall(prompt, [userName]);
 
     // Check for a valid response
     if (chainResponse) {
