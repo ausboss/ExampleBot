@@ -120,7 +120,7 @@ export default {
     ) {
       return; // Ignore messages from bots or commands
     }
-
+    await logDetailedMessage(message, client); // Log the user's message
     console.log(`${message.author.globalName}: ${message.cleanContent}`);
     let messageContent;
     try {
@@ -134,7 +134,6 @@ export default {
       return; // Exit if processing fails
     }
 
-    await logDetailedMessage(message, client); // Log the user's message
     await sendMessageInParts(message, messageContent, client); // Handle sending message considering the character limit
   },
 };

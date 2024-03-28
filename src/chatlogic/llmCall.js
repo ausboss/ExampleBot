@@ -6,6 +6,7 @@ export default async function llmCall(prompt, stopWords) {
     temperature: 1.14,
     top_p: 0.9,
     min_p: 0.06,
+    repetition_penalty: 1.3,
     stop: stopWords,
   };
 
