@@ -37,9 +37,9 @@ export async function processMessage(message, memories, client) {
 
   try {
     if (message.guildId) return; // Assuming you want to exit if this is a guild message
-    // console.log("Prompt:", prompt);
+    console.log("Prompt:", prompt);
 
-    const chainResponse = await llmCall(prompt, [`\n${userName}: `]);
+    const chainResponse = await llmCall(prompt, [`\n${userName}: `, "\n\n"]);
 
     // Check for a valid response
     if (chainResponse) {
